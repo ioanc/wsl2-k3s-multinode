@@ -69,31 +69,41 @@
   - create a folder, where the files of the k3s-node-0 WSL2 instace will be saved
   
     ``` 
-      mkdir C:\wsl2\k3s-node-0 
+      PS C:\>C:\wsl2\ mkdir C:\wsl2\k3s-node-0 
     ```
   
   - import the K3S image, that was copied eralier from your Linux box, as a WSL instance version 2
   
     ``` 
-      wsl --import k3s-node-0 C:\wsl2\k3s-node-0\ C:\wsl2\wsl2-k3s-v1.17.4-k3s1.tar --version 2 
+      PS C:\>C:\wsl2\ wsl --import k3s-node-0 C:\wsl2\k3s-node-0\ C:\wsl2\wsl2-k3s-v1.17.4-k3s1.tar --version 2 
     ```
   
   - check created instance - it will use version 2
   
     ``` 
-      wsl -l -v 
+      PS C:\>C:\wsl2\ wsl -l -v
+      NAME          STATE           VERSION
+      * Ubuntu      Running         1
+      k3s-node-0    Stopped         2
+      PS C:\> 
     ```
   
   - start the K3S instance
 
     ``` 
-      wsl -d k3s-node-0 
+      PS C:\>C:\wsl2\ wsl -d k3s-node-0 
     ```
   
-  - at the new promp, start the K3S server
+  - at the new promp, chec kk3s version and start the K3S server
     
-    ``` 
-      nohup k3s server & 
+    ```
+      / #
+      / # k3s --version
+      k3s version v1.17.4+k3s1 (3eee8ac3)
+      / #
+      / # nohup k3s server &
+      / #
+      
     ```
   
   - several seconds later, K3s is running
