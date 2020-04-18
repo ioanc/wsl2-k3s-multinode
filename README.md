@@ -102,8 +102,7 @@
       k3s version v1.17.4+k3s1 (3eee8ac3)
       / #
       / # nohup k3s server &
-      / #
-      
+      / #      
     ```
   
   - several seconds later, K3s is running
