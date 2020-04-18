@@ -94,12 +94,14 @@
       PS C:\>C:\wsl2\ wsl -d k3s-node-0 
     ```
   
-  - at the new promp, chec kk3s version and start the K3S server
+  - at the new promp, check k3s version, add and ID to ```/etc/machine-id``` and start the K3S server
     
     ```
       / #
       / # k3s --version
       k3s version v1.17.4+k3s1 (3eee8ac3)
+      / #
+      / # od -x /dev/urandom | head -1 | awk '{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}' > /etc/machine-id
       / #
       / # nohup k3s server &
       / #      
@@ -123,3 +125,69 @@
       kube-system   traefik-7b8b884c8-glxdp                   1/1     Running     0          14m
       / #      
     ```
+  - get the IP address of the K3S server and the token; we need this to add the second node to the cluster
+
+    ```
+      / # ip addr show eth0
+      4: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+      link/ether 00:15:5d:a4:21:03 brd ff:ff:ff:ff:ff:ff
+      inet 172.23.120.165/20 brd 172.23.127.255 scope global eth0
+         valid_lft forever preferred_lft forever
+      inet6 fe80::215:5dff:fea4:2103/64 scope link
+         valid_lft forever preferred_lft forever
+      / # cat /var/lib/rancher/k3s/server/node-token
+      / #
+      K1034daef0594ec255977adc416af8c57bf2eb914167fc3ee241ea134a246621c6c::server:175d0215b69ffacc9bd03982ae8a3bf9
+      / #
+      
+    ```
+
+ #### Create a new WSL2 instance using the K3S image and add the new K3S node to the cluster
+
+- open PowerShell with Admin rights
+
+  - change the working directory to ```c:\wsl2```
+  
+  - create a new local user and assign it a password
+    ```
+      PS C:\> $Password = Read-Host -AsSecureString
+      *********
+      PS C:\> New-LocalUser -Name "k3s-node-1" -AccountNeverExpires -Password $Password
+
+      Name       Enabled Description
+      ----       ------- -----------
+      k3s-node-1 True
+ 
+      PS C:\>
+    ```
+  - next, we will run PowerShell in the new user context to create the folder to install the new WSL2 instance, 
+    and import the K3S image
+
+    ```
+      PS C:\>
+
+      PS C:\> $Credential = Get-Credential k3s-node-1
+      PS C:\> start powershell -credential $Credential -LoadUserProfile -WorkingDirectory c:\wsl2 -ArgumentList "mkdir c:\wsl2\k3s-node-1;exit"
+      PS C:\> start powershell -credential $Credential -LoadUserProfile -WorkingDirectory c:\wsl2 -ArgumentList "wsl --import k3s-node-1 C:\wsl2\k3s-node-1\ C:\wsl2\wsl2-k3s-v1.17.4-k3s1.tar --version 2"
+      PS C:\> start powershell -credential $Credential -LoadUserProfile -WorkingDirectory c:\wsl2 -ArgumentList "wsl -l -v;start-sleep 10;exe"
+      PS C:\>
+    ```
+    
+  - we can now start the new WSL2 instance and check the verison of the K3S; a new window will pop up and close in 10sec
+    ```
+      PS C:\> start powershell -credential $Credential -LoadUserProfile -WorkingDirectory c:\wsl2 -ArgumentList "wsl -d k3s-node-1 k3s --version;start-sleep 10;exit"
+    ```
+  
+  - we start K3S as an agent, using the IP address and token, from the K3S server, that we got earlier
+    ```
+      PS C:\> $script = {wsl -d k3s-node-1 -e k3s agent --server https://172.23.120.165:6443 --token K1034daef0594ec255977adc416af8c57bf2eb914167fc3ee241ea134a246621c6c::server:175d0215b69ffacc9bd03982ae8a3bf9}
+      PS C:\wsl2\k3s-node-1> Start-Job -Credential $Credential -Name k3s-node-1 -ScriptBlock $script
+
+      Id     Name            PSJobTypeName   State         HasMoreData     Location             Command
+      --     ----            -------------   -----         -----------     --------             -------
+      3      k3s-node-1      BackgroundJob   Running       True            localhost            wsl -d k3s-node-1 -e k...
+
+      
+      
+    ```
+    
