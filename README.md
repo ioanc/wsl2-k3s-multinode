@@ -112,6 +112,5 @@
       kube-system   helm-install-traefik-sr67m                0/1     Completed   0          17m
       kube-system   svclb-traefik-nppmc                       2/2     Running     0          14m
       kube-system   traefik-7b8b884c8-glxdp                   1/1     Running     0          14m
-      / #
-      
+      / #      
     ```
