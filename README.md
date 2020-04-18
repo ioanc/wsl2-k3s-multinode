@@ -1,4 +1,4 @@
-# wsl2 k3s multinode
+# wsl2 k3s multinode - work in progress
 
 ## Info
 - [K3S](https://k3s.io/) is a certified kubernetes distro for edge and other scenarios
