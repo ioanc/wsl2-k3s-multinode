@@ -16,6 +16,7 @@
 - Windows 10 2004 OS Build 19041.xxx or newer with WSL installed
 - A Linux system where [docker](https://docs.docker.com/) is installed and running
 - [Ubuntu](https://aka.ms/wsl-ubuntu-1804) installed from the Microsoft Store
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) installed on your system 
 
 
 ## Steps
@@ -25,7 +26,7 @@
 
 - open Windows Terminal and connect to your WLS Ubuntu instance
 
-  - connect to your Linux system using ssh ; I am using a VM running Ubuntu 16.04.6 LTS
+  - connect to your Linux system that runs docker using ssh ; I am using a VM running Ubuntu 16.04.6 LTS
   
   - create a working folder, to be used for creating the K3S image for to be used in WSL2
 
@@ -60,7 +61,7 @@
   - copy the tar file, ```wsl2-k3s-v1.17.4-k3s1.tar```, to your local Windows system, e.g ```C:\wsl2\```
   
 
- #### Create a new WSL2 instance using the K3S image and that K3S as a server
+ #### Create a new WSL2 instance using the K3S image and K3S as a server, in the current user context
 
 - in Windows Terminal open a PowerShell instance
 
@@ -128,13 +129,9 @@
   - get the IP address of the K3S server and the token; we need this to add the second node to the cluster
 
     ```
-      / # ip addr show eth0
-      4: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
-      link/ether 00:15:5d:a4:21:03 brd ff:ff:ff:ff:ff:ff
-      inet 172.23.120.165/20 brd 172.23.127.255 scope global eth0
-         valid_lft forever preferred_lft forever
-      inet6 fe80::215:5dff:fea4:2103/64 scope link
-         valid_lft forever preferred_lft forever
+      / # ip addr sho eth0 scope global|grep inet|awk '{print $2}'|awk -F'/' '{print $1}'
+      172.23.120.165
+      / #
       / # cat /var/lib/rancher/k3s/server/node-token
       / #
       K1034daef0594ec255977adc416af8c57bf2eb914167fc3ee241ea134a246621c6c::server:175d0215b69ffacc9bd03982ae8a3bf9
@@ -142,7 +139,7 @@
       
     ```
 
- #### Create a new WSL2 instance using the K3S image and add the new K3S node to the cluster
+ #### Create a new WSL2 instance, in the context of another local user, using the K3S image and add the new K3S node to the cluster
 
 - open PowerShell with Admin rights
 
@@ -196,14 +193,74 @@
 
       Id     Name            PSJobTypeName   State         HasMoreData     Location             Command
       --     ----            -------------   -----         -----------     --------             -------
-      11      k3s-node-1      BackgroundJob   Running       True            localhost            wsl -d k3s-node-1 -e k...
-      
-      PS C:\> Start-Job -Credential $Credential -Name k3s-node-1 -ScriptBlock $script
-
-      Id     Name            PSJobTypeName   State         HasMoreData     Location             Command
-      --     ----            -------------   -----         -----------     --------             -------
       21     k3s-node-1      BackgroundJob   Running       True            localhost            wsl -d k3s-node-1 -e k...
-  ``` 
+    ``` 
   
+ #### Checking results and exporting kubeconfig
 
+- in Windows Terminal open a PowerShell instance
+
+  - check using ```wsl``` the status of the cluster and nodes
+  
+    ```
+      PS C:\> wsl -l -v
+      NAME          STATE           VERSION
+      * Ubuntu      Running         1
+      k3s-node-0    Running         2
+      PS C:\>
+      PS C:\> wsl -d k3s-node-0 kubectl get nodes
+      NAME                STATUS   ROLES    AGE     VERSION
+      pc0qap6g-2ea44fa8   Ready    <none>   63m     v1.17.4+k3s1   172.23.114.210   <none>        Unknown    4.19.84-microsoft-standard   containerd://1.3.3-k3s2
+      pc0qap6g            Ready    master   5h20m   v1.17.4+k3s1   172.23.120.165   <none>        Unknown    4.19.84-microsoft-standard   containerd://1.3.3-k3s2
+      PS C:\>
+      PS C:\> wsl -d k3s-node-0 kubectl top nodes
+      NAME                CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
+      pc0qap6g            133m         3%     684Mi           5%
+      pc0qap6g-2ea44fa8   19m          0%     109Mi           0%
+      PS C:\>
+      PS C:\> wsl -d k3s-node-0 kubectl get pods --all-namespaces
+      NAMESPACE     NAME                                      READY   STATUS      RESTARTS   AGE
+      kube-system   local-path-provisioner-58fb86bdfd-wqcll   1/1     Running     0          5h18m
+      kube-system   coredns-6c6bb68b64-xz8pd                  1/1     Running     0          5h18m
+      kube-system   metrics-server-6d684c7b5-hkxfp            1/1     Running     0          5h18m
+      kube-system   helm-install-traefik-sr67m                0/1     Completed   0          5h18m
+      kube-system   svclb-traefik-nppmc                       2/2     Running     0          5h15m
+      kube-system   traefik-7b8b884c8-glxdp                   1/1     Running     0          5h15m
+      kube-system   svclb-traefik-mntpx                       2/2     Running     0          24m
+      PS C:\>
+    ```
+    
+  - extract the kubeconfig file from the cluster, replace 127.0.0.1 with the eth0 ip address of the k3s server
+    config file saved to c:\wsl2\k3s.yaml
+    
+    ```
+      PS C:\wsl2> (wsl -d k3s-node-0 cat /etc/rancher/k3s/k3s.yaml) -replace '127.0.0.1',(wsl -d k3s-node-0 ip addr show eth0|?{$_ -match "inet "}).split()[5].split("/")[0] > c:\wsl2\k3s.yaml
+    ```
+   
+  - use local ```kubectl``` and check cluster resource
+  
+    ```
+      PS C:\wsl2>
+      PS C:\wsl2> kubectl --kubeconfig=c:\wsl2\k3s.yaml get nodes
+      NAME                STATUS    ROLES     AGE       VERSION
+      pc0qap6g-2ea44fa8   Ready     <none>    83m       v1.17.4+k3s1
+      pc0qap6g            Ready     master    5h41m     v1.17.4+k3s1
+      PS C:\wsl2>
+      PS C:\wsl2> kubectl --kubeconfig=c:\wsl2\k3s.yaml top nodes
+      NAME                CPU(cores)   CPU%      MEMORY(bytes)   MEMORY%
+      pc0qap6g            125m         3%        686Mi           5%
+      pc0qap6g-2ea44fa8   20m          0%        109Mi           0%
+      PS C:\wsl2>
+      PS C:\wsl2> kubectl --kubeconfig=c:\wsl2\k3s.yaml get pods --all-namespaces
+      NAMESPACE     NAME                                      READY     STATUS      RESTARTS   AGE
+      kube-system   local-path-provisioner-58fb86bdfd-wqcll   1/1       Running     0          5h41m
+      kube-system   coredns-6c6bb68b64-xz8pd                  1/1       Running     0          5h41m
+      kube-system   metrics-server-6d684c7b5-hkxfp            1/1       Running     0          5h41m
+      kube-system   helm-install-traefik-sr67m                0/1       Completed   0          5h41m
+      kube-system   svclb-traefik-nppmc                       2/2       Running     0          5h38m
+      kube-system   traefik-7b8b884c8-glxdp                   1/1       Running     0          5h38m
+      kube-system   svclb-traefik-mntpx                       2/2       Running     0          47m
+      PS C:\wsl2>
+    ```
+    
     
