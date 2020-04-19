@@ -179,7 +179,11 @@
     in the interactive mode ```/bin/aux/``` is part of the ```$PATH``` but not when running ```wsl ---exec $PATH```
     
     ```
-      Start-Job -Credential $Credential -Name k3s-node-1 -ScriptBlock {wsl -d k3s-node-1 ln -s /bin/aux/mount /bin/mount}
+      PS C:\> Start-Job -Credential $Credential -Name k3s-node-1 -ScriptBlock {wsl -d k3s-node-1 ln -s /bin/aux/mount /bin/mount}    
+      
+      Id     Name            PSJobTypeName   State         HasMoreData     Location             Command
+      --     ----            -------------   -----         -----------     --------             -------
+      19     k3s-node-1      BackgroundJob   Running       True            localhost            wsl -d k3s-node-1 ln -...
     ```
   
   - we prepare the arguments and start the ```k3s agent``` using ```Start-Job```
