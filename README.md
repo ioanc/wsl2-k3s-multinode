@@ -265,7 +265,3 @@
 
 ## DO TO
   still looking for a way to get the rootfs of an image , without the need to have a Linux  /Windows computer that is running docker
-  
-> NOTE: it was fun doing this
-
-> any comments are wellcomme
