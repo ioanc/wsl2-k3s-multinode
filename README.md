@@ -69,19 +69,19 @@
   
   - create a folder, where the files of the k3s-node-0 WSL2 instace will be saved
   
-    ``` 
+    ```powershell 
       PS C:\>C:\wsl2\ mkdir C:\wsl2\k3s-node-0 
     ```
   
   - import the K3S image, that was copied eralier from your Linux box, as a WSL instance version 2
   
-    ``` 
+    ```powershell 
       PS C:\>C:\wsl2\ wsl --import k3s-node-0 C:\wsl2\k3s-node-0\ C:\wsl2\wsl2-k3s-v1.17.4-k3s1.tar --version 2 
     ```
   
   - check created instance - it will use version 2
   
-    ``` 
+    ```powershell 
       PS C:\>C:\wsl2\ wsl -l -v
       NAME          STATE           VERSION
       * Ubuntu      Running         1
@@ -91,7 +91,7 @@
   
   - start the K3S instance
 
-    ``` 
+    ```powershell 
       PS C:\>C:\wsl2\ wsl -d k3s-node-0 
     ```
   
@@ -144,7 +144,7 @@
 - open PowerShell with Admin rights
 
   - create a new local user and assign it a password
-    ```
+    ```powershell
       PS C:\> $Password = Read-Host -AsSecureString
       *********
       PS C:\> New-LocalUser -Name "k3s-node-1" -AccountNeverExpires -Password $Password
@@ -158,7 +158,7 @@
   - next, we will run PowerShell in the new user context to create the folder to install the new WSL2 instance, 
     and import the K3S image
 
-    ```
+    ```powershell
       PS C:\>
 
       PS C:\> $Credential = Get-Credential k3s-node-1
@@ -169,13 +169,13 @@
     ```
     
   - we can now start the new WSL2 instance and check the verison of the K3S; a new window will pop up and close in 10sec
-    ```
+    ```powershell
       PS C:\> start-process powershell -credential $Credential -LoadUserProfile -WorkingDirectory c:\wsl2 -ArgumentList "wsl -d k3s-node-1 k3s --version;start-sleep 10;exit"
     ```
   - before starting ```k3s agent``` we need to create a soft link for ```mount``` in ```/bin``` folder
     in the interactive mode ```/bin/aux/``` is part of the ```$PATH``` but not when running ```wsl ---exec $PATH```
     
-    ```
+    ```powershell
       PS C:\> Start-Job -Credential $Credential -Name k3s-node-1 -ScriptBlock {wsl -d k3s-node-1 ln -s /bin/aux/mount /bin/mount}    
       
       Id     Name            PSJobTypeName   State         HasMoreData     Location             Command
@@ -186,7 +186,7 @@
   - we prepare the arguments and start the ```k3s agent``` using ```Start-Job```
     this is needed becase ```wsl --exe``` does not accept special characters like ```&```
 
-    ```
+    ```powershell
       PS C:\> $script = {wsl -d k3s-node-1 -e k3s agent --server https://172.23.120.165:6443 --token K1034daef0594ec255977adc416af8c57bf2eb914167fc3ee241ea134a246621c6c::server:175d0215b69ffacc9bd03982ae8a3bf9 --with-node-id}
       PS C:\>   
       PS C:\> Start-Job -Credential $Credential -Name k3s-node-1 -ScriptBlock $script
@@ -202,7 +202,7 @@
 
   - check using ```wsl``` the status of the cluster and nodes
   
-    ```
+    ```powershell
       PS C:\> wsl -l -v
       NAME          STATE           VERSION
       * Ubuntu      Running         1
@@ -233,13 +233,13 @@
   - extract the kubeconfig file from the cluster, replace 127.0.0.1 with the eth0 ip address of the k3s server
     config file saved to c:\wsl2\k3s.yaml
     
-    ```
+    ```powershell
       PS C:\wsl2> (wsl -d k3s-node-0 cat /etc/rancher/k3s/k3s.yaml) -replace '127.0.0.1',(wsl -d k3s-node-0 ip addr show eth0|?{$_ -match "inet "}).split()[5].split("/")[0] > c:\wsl2\k3s.yaml
     ```
    
   - use local ```kubectl``` and check cluster resource
   
-    ```
+    ```powershell
       PS C:\wsl2>
       PS C:\wsl2> kubectl --kubeconfig=c:\wsl2\k3s.yaml get nodes
       NAME                STATUS    ROLES     AGE       VERSION
@@ -262,5 +262,9 @@
       kube-system   svclb-traefik-mntpx                       2/2       Running     0          47m
       PS C:\wsl2>
     ```
-    
-    
+
+## DO TO
+  still looking for a way to get the rootfs of an image , without the need to have a Linux  /Windows computer that is running docker
+  
+> NOTE: it was fun doing this
+> any comments are wellcomme
