@@ -263,5 +263,5 @@
       PS C:\wsl2>
     ```
 
-## DO TO
+## Do To
   still looking for a way to get the rootfs of an image , without the need to have a Linux  /Windows computer that is running docker
