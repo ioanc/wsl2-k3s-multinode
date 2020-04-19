@@ -146,8 +146,6 @@
 
 - open PowerShell with Admin rights
 
-  - change the working directory to ```c:\wsl2```
-  
   - create a new local user and assign it a password
     ```
       PS C:\> $Password = Read-Host -AsSecureString
@@ -167,27 +165,41 @@
       PS C:\>
 
       PS C:\> $Credential = Get-Credential k3s-node-1
-      PS C:\> start powershell -credential $Credential -LoadUserProfile -WorkingDirectory c:\wsl2 -ArgumentList "mkdir c:\wsl2\k3s-node-1;exit"
-      PS C:\> start powershell -credential $Credential -LoadUserProfile -WorkingDirectory c:\wsl2 -ArgumentList "wsl --import k3s-node-1 C:\wsl2\k3s-node-1\ C:\wsl2\wsl2-k3s-v1.17.4-k3s1.tar --version 2"
-      PS C:\> start powershell -credential $Credential -LoadUserProfile -WorkingDirectory c:\wsl2 -ArgumentList "wsl -l -v;start-sleep 10;exe"
+      PS C:\> start-process powershell -credential $Credential -LoadUserProfile -ArgumentList "mkdir c:\wsl2\k3s-node-1;exit"
+      PS C:\> start-process powershell -credential $Credential -LoadUserProfile -ArgumentList "wsl --import k3s-node-1 C:\wsl2\k3s-node-1\ C:\wsl2\wsl2-k3s-v1.17.4-k3s1.tar --version 2"
+      PS C:\> start-process powershell -credential $Credential -LoadUserProfile -ArgumentList "wsl -l -v;start-sleep 10;exe"
       PS C:\>
     ```
     
   - we can now start the new WSL2 instance and check the verison of the K3S; a new window will pop up and close in 10sec
     ```
-      PS C:\> start powershell -credential $Credential -LoadUserProfile -WorkingDirectory c:\wsl2 -ArgumentList "wsl -d k3s-node-1 k3s --version;start-sleep 10;exit"
+      PS C:\> start-process powershell -credential $Credential -LoadUserProfile -WorkingDirectory c:\wsl2 -ArgumentList "wsl -d k3s-node-1 k3s --version;start-sleep 10;exit"
+    ```
+  - before starting ```k3s agent``` we need to create a soft link for ```mount``` in ```/bin``` folder
+    in the interactive mode ```/bin/aux/``` is part of the ```$PATH``` but not when running ```wsl ---exec $PATH```
+    
+    ```
+      Start-Job -Credential $Credential -Name k3s-node-1 -ScriptBlock {wsl -d k3s-node-1 ln -s /bin/aux/mount /bin/mount}
     ```
   
-  - we start K3S as an agent, using the IP address and token, from the K3S server, that we got earlier
+  - we prepare the arguments and start the ```k3s agent``` using ```Start-Job```
+    this is needed becase ```wsl --exe``` does not accept special characters like ```&```
+
     ```
-      PS C:\> $script = {wsl -d k3s-node-1 -e k3s agent --server https://172.23.120.165:6443 --token K1034daef0594ec255977adc416af8c57bf2eb914167fc3ee241ea134a246621c6c::server:175d0215b69ffacc9bd03982ae8a3bf9}
-      PS C:\wsl2\k3s-node-1> Start-Job -Credential $Credential -Name k3s-node-1 -ScriptBlock $script
+      PS C:\> $script = {wsl -d k3s-node-1 -e k3s agent --server https://172.23.120.165:6443 --token K1034daef0594ec255977adc416af8c57bf2eb914167fc3ee241ea134a246621c6c::server:175d0215b69ffacc9bd03982ae8a3bf9 --with-node-id}
+      PS C:\>   
+      PS C:\> Start-Job -Credential $Credential -Name k3s-node-1 -ScriptBlock $script
 
       Id     Name            PSJobTypeName   State         HasMoreData     Location             Command
       --     ----            -------------   -----         -----------     --------             -------
-      3      k3s-node-1      BackgroundJob   Running       True            localhost            wsl -d k3s-node-1 -e k...
+      11      k3s-node-1      BackgroundJob   Running       True            localhost            wsl -d k3s-node-1 -e k...
+      
+      PS C:\> Start-Job -Credential $Credential -Name k3s-node-1 -ScriptBlock $script
 
-      
-      
-    ```
+      Id     Name            PSJobTypeName   State         HasMoreData     Location             Command
+      --     ----            -------------   -----         -----------     --------             -------
+      21     k3s-node-1      BackgroundJob   Running       True            localhost            wsl -d k3s-node-1 -e k...
+  ``` 
+  
+
     
