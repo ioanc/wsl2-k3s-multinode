@@ -33,7 +33,6 @@ But then I wanted to have a two node K3S cluster running on WSL2 and this is how
 - open Windows Terminal and connect to your WLS Ubuntu instance
 
   - connect to your Linux system that runs docker using ssh ; I am using a VM running Ubuntu 16.04.6 LTS
-  
   - create a working folder, to be used for creating the K3S image for to be used in WSL2
 
     ``` 
@@ -72,7 +71,6 @@ But then I wanted to have a two node K3S cluster running on WSL2 and this is how
 - in Windows Terminal open a PowerShell instance
 
   - change the working directory to ```c:\wsl2```
-  
   - create a folder, where the files of the k3s-node-0 WSL2 instace will be saved
   
     ```powershell 
