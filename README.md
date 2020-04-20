@@ -269,3 +269,4 @@ But then I wanted to have a two node K3S cluster running on WSL2 and this is how
 
 ## Do To
   still looking for a way to get the rootfs of an image , without the need to have a Linux  /Windows computer that is running docker
+  point 3.6 - still need to find a way to pus a guid to /etc/machine-id , in a one-liner
