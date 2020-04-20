@@ -28,7 +28,7 @@ But then I wanted to have a two node K3S cluster running on WSL2 and this is how
 ## Steps
 
 
-1. #### Prepare and created the K3S image to be imported in WSL2
+1. ### Prepare and created the K3S image to be imported in WSL2
 
  - open Windows Terminal and connect to your WLS Ubuntu instance
 
@@ -66,7 +66,7 @@ But then I wanted to have a two node K3S cluster running on WSL2 and this is how
   - copy the tar file, ```wsl2-k3s-v1.17.4-k3s1.tar```, to your local Windows system, e.g ```C:\wsl2\```
   
 
-2. #### Create a new WSL2 instance using the K3S image and K3S as a server, in the current user context
+2. ### Create a new WSL2 instance using the K3S image and K3S as a server, in the current user context
 
  - in Windows Terminal open a PowerShell instance
 
@@ -143,7 +143,7 @@ But then I wanted to have a two node K3S cluster running on WSL2 and this is how
       
     ```
 
-3. #### Create a new WSL2 instance, in the context of another local user, using the K3S image and add the new K3S node to the cluster
+3. ### Create a new WSL2 instance, in the context of another local user, using the K3S image and add the new K3S node to the cluster
 
  - open PowerShell with Admin rights
 
@@ -200,7 +200,7 @@ But then I wanted to have a two node K3S cluster running on WSL2 and this is how
       21     k3s-node-1      BackgroundJob   Running       True            localhost            wsl -d k3s-node-1 -e k...
     ``` 
   
-4. #### Checking results and exporting kubeconfig
+4. ### Checking results and exporting kubeconfig
 
  - in Windows Terminal open a PowerShell instance
 
