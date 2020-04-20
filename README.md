@@ -1,6 +1,12 @@
 # wsl2 k3s multi node
 
 ## Info
+
+Running a one node K3S cluster on a Linux VM running on Hyper-V should not be that hard.
+Adding a second node to the cluster, is also easy.
+I fond some resources on how to run k3s in WSL2.
+But then I wanted to have a two node K3S cluster running on WSL2 and this is how you can make it hapen.
+
 - [K3S](https://k3s.io/) is a certified kubernetes distro for edge and other scenarios
 - [WSL2](https://docs.microsoft.com/en-us/windows/wsl/wsl2-install) runs Linux on windows, nicer and more integrated than a traditional vm on hyper-v
 
