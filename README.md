@@ -36,9 +36,9 @@ But then I wanted to have a two node K3S cluster running on WSL2 and this is how
   
   - create a working folder, to be used for creating the K3S image for to be used in WSL2
 
-    ``` 
+    ` 
       mkdir k3s-wsl2
-    ```
+    `
     
   - prepare the files to created the K3S image and container ```profile``` and ```Dockerfile```
   
