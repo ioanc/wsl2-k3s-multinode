@@ -99,7 +99,7 @@ But then I wanted to have a two node K3S cluster running on WSL2 and this is how
       PS C:\>C:\wsl2\ wsl -d k3s-node-0 
     ```
   
-  - at the new promp, check k3s version, add and ID to ```/etc/machine-id``` and start the K3S server
+  - at the new promp, inside the k3s instance, check k3s version, add an ID to ```/etc/machine-id``` and start the K3S server
     
     ```
       / #
